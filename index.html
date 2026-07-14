@@ -26,7 +26,7 @@
             </div>
             <div class="space-x-2">
                 <button onclick="switchView('survey')" id="btn-survey" class="px-4 py-2 rounded-lg text-sm font-bold bg-blue-950 text-white transition-all">진단 참여</button>
-                <button onclick="switchView('dashboard')" id="btn-dashboard" class="px-4 py-2 rounded-lg text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">강사 대시보드</button>
+                <button onclick="switchView('dashboard')" id="btn-dashboard" class="px-4 py-2 rounded-lg text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">실시간 대시보드</button>
             </div>
         </div>
     </nav>
@@ -36,26 +36,11 @@
         <div class="gradient-bg text-white rounded-2xl p-8 mb-8 card-shadow">
             <h1 class="text-2xl md:text-3xl font-bold mb-3">인턴십 조직적응 마음가짐 진단</h1>
             <p class="text-blue-200 text-sm md:text-base leading-relaxed">
-                본 진단은 현업 배치 전, 여러분이 코오롱인더스트리의 일원으로서 건강하게 몰입하고 적응할 수 있는 '마음가짐 상태'를 점검하기 위한 도구입니다. 정답이 없으므로 솔직하게 응답해 주세요.
+                본 진단은 현업 배치 전, 여러분이 코오롱인더스트리의 일원으로서 건강하게 몰입하고 적응할 수 있는 '마음가짐 상태'를 점검하기 위한 도구입니다. **정보 입력 없이 완전히 무기명(익명)으로 진행되오니 부담 없이 솔직하게 응답해 주세요.**
             </p>
             <div class="mt-6 flex flex-wrap gap-4 text-xs text-blue-100 bg-white/10 p-4 rounded-xl">
                 <div>• 총 문항: 25문항</div>
                 <div>• 하위 영역: 주도성, 유연성, 회복탄력성, 협업 열린마음, 조직 일체감</div>
-            </div>
-        </div>
-
-        <!-- 사용자 정보 입력 -->
-        <div class="bg-white rounded-2xl p-6 mb-6 card-shadow border border-gray-100">
-            <h3 class="font-bold text-gray-900 mb-4 flex items-center"><span class="w-1.5 h-5 bg-emerald-500 rounded-full mr-2"></span>응답자 정보 입력</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">성명</label>
-                    <input type="text" id="user-name" placeholder="이름을 입력하세요" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">소속 부서 / 군</label>
-                    <input type="text" id="user-dept" placeholder="예: HR디자인팀 / 화학소재" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
-                </div>
             </div>
         </div>
 
@@ -72,16 +57,16 @@
     </div>
 
 
-    <!-- [2] 강사용 대시보드 화면 -->
+    <!-- [2] 실시간 대시보드 화면 -->
     <div id="dashboard-view" class="max-w-7xl mx-auto px-4 py-8 hidden">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">강사 모니터링 대시보드</h1>
-                <p class="text-gray-500 text-sm mt-1">인턴들의 조직적응 readiness(준비도) 데이터를 실시간으로 분석합니다.</p>
+                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">실시간 종합 대시보드</h1>
+                <p class="text-gray-500 text-sm mt-1">우리 인턴 동기들의 조직적응 준비도(Readiness) 현황을 실시간으로 함께 확인합니다.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="clearData()" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-sm transition-all">
-                    🧹 전체 DB 초기화
+                    🧹 전체 데이터 초기화
                 </button>
                 <button onclick="generateMockData()" class="bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-sm transition-all">
                     📊 가상 데이터 생성 (테스트용)
@@ -92,19 +77,19 @@
         <!-- 통계 요약 카드 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
-                <p class="text-sm font-medium text-gray-400">총 진단 완료 인원</p>
+                <p class="text-sm font-medium text-gray-400">총 참여 인원</p>
                 <p class="text-3xl font-extrabold text-blue-950 mt-2" id="stat-total">0명</p>
             </div>
             <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
-                <p class="text-sm font-medium text-gray-400">전체 종합 평균 점수</p>
+                <p class="text-sm font-medium text-gray-400">우리 그룹 종합 평균</p>
                 <p class="text-3xl font-extrabold text-emerald-600 mt-2" id="stat-avg">0.0 / 5.0</p>
             </div>
             <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
-                <p class="text-sm font-medium text-gray-400">최고 위험 영역 (최저점)</p>
+                <p class="text-sm font-medium text-gray-400">가장 집중이 필요한 영역</p>
                 <p class="text-xl font-bold text-red-500 mt-3" id="stat-low-factor">-</p>
             </div>
             <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
-                <p class="text-sm font-medium text-gray-400">가장 강한 영역 (최고점)</p>
+                <p class="text-sm font-medium text-gray-400">가장 준비가 잘 된 영역</p>
                 <p class="text-xl font-bold text-blue-600 mt-3" id="stat-high-factor">-</p>
             </div>
         </div>
@@ -118,13 +103,12 @@
                 </div>
             </div>
             <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100 lg:col-span-2">
-                <h3 class="font-bold text-gray-800 mb-4">개인별 진단 결과 현황 테이블</h3>
+                <h3 class="font-bold text-gray-800 mb-4">개인별 진단 결과 현황 테이블 (완전 무기명)</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-sm">
                         <thead>
                             <tr class="border-b border-gray-200 text-gray-400 bg-gray-50">
-                                <th class="p-3 font-semibold">성명</th>
-                                <th class="p-3 font-semibold">소속</th>
+                                <th class="p-3 font-semibold">구분</th>
                                 <th class="p-3 font-semibold text-center">주도성</th>
                                 <th class="p-3 font-semibold text-center">유연성</th>
                                 <th class="p-3 font-semibold text-center">회복탄력</th>
@@ -135,7 +119,7 @@
                         </thead>
                         <tbody id="data-table-body" class="divide-y divide-gray-100 text-gray-700">
                             <tr>
-                                <td colspan="8" class="text-center py-8 text-gray-400">실시간 데이터를 가져오는 중이거나 데이터가 없습니다.</td>
+                                <td colspan="7" class="text-center py-8 text-gray-400">실시간 데이터를 가져오는 중이거나 데이터가 없습니다.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -242,16 +226,8 @@
             }
         }
 
-        // 진단 결과 제출 처리 (Firebase에 저장)
+        // 진단 결과 제출 처리 (Firebase에 무기명으로 저장)
         function submitSurvey() {
-            const name = document.getElementById('user-name').value.trim();
-            const dept = document.getElementById('user-dept').value.trim();
-
-            if(!name || !dept) {
-                alert('응답자 이름과 소속을 적어주세요.');
-                return;
-            }
-
             let factorScores = { "주도성": 0, "유연성": 0, "회복탄력": 0, "협업오픈": 0, "조직일체": 0 };
             let total = 0;
 
@@ -270,19 +246,21 @@
             Object.keys(factorScores).forEach(k => factorScores[k] = parseFloat((factorScores[k] / 5).toFixed(2)));
             let userAvg = parseFloat((total / 25).toFixed(2));
 
-            // Firebase 실시간 DB에 데이터 푸시
-            database.ref('results').push({
-                name: name,
-                dept: dept,
-                scores: factorScores,
-                avg: userAvg,
-                timestamp: Date.now()
-            }).then(() => {
-                alert('진단이 성공적으로 클라우드 DB에 제출되었습니다! 대시보드로 이동합니다.');
-                document.getElementById('survey-form').reset();
-                document.getElementById('user-name').value = '';
-                document.getElementById('user-dept').value = '';
-                switchView('dashboard');
+            // 무기명 임시 번호 생성을 위해 기존 데이터 수 확인 후 데이터 푸시
+            database.ref('results').once('value').then((snapshot) => {
+                const currentCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                const anonymousId = `참가자 ${currentCount + 1}`;
+
+                database.ref('results').push({
+                    name: anonymousId,
+                    scores: factorScores,
+                    avg: userAvg,
+                    timestamp: Date.now()
+                }).then(() => {
+                    alert('진단이 완전히 익명으로 제출되었습니다! 실시간 대시보드로 이동합니다.');
+                    document.getElementById('survey-form').reset();
+                    switchView('dashboard');
+                });
             }).catch(err => {
                 alert('DB 업로드 도중 에러가 발생했습니다: ' + err.message);
             });
@@ -294,6 +272,7 @@
                 const data = snapshot.val();
                 dbData = [];
                 if(data) {
+                    // 시간 순서 정렬을 보장하기 위해 배열에 푸시
                     Object.keys(data).forEach(key => {
                         dbData.push(data[key]);
                     });
@@ -313,11 +292,9 @@
             }
         }
 
-        // 가상 데이터 대량 생성 (Firebase 전송 시뮬레이션)
+        // 가상 데이터 대량 생성 (익명 버전)
         function generateMockData() {
-            const names = ["김코롱", "이인턴", "박혁신", "최미래", "정성장", "윤협력", "한열정"];
-            const depts = ["경영지원팀", "구미공장 생산기술", "울산공장 연구소", "아라미드 사업부", "필름마케팅팀"];
-            
+            const currentCount = dbData.length;
             for(let i=0; i<3; i++) {
                 let factorScores = {
                     "주도성": parseFloat((Math.random() * 2 + 3).toFixed(2)),
@@ -330,8 +307,7 @@
                 let avg = parseFloat((sum / 5).toFixed(2));
                 
                 database.ref('results').push({
-                    name: names[Math.floor(Math.random()*names.length)] + (dbData.length+1),
-                    dept: depts[Math.floor(Math.random()*depts.length)],
+                    name: `참가자 ${currentCount + i + 1}`,
                     scores: factorScores,
                     avg: avg,
                     timestamp: Date.now()
@@ -346,7 +322,7 @@
             document.getElementById('stat-low-factor').innerText = `-`;
             document.getElementById('stat-high-factor').innerText = `-`;
             document.getElementById('data-table-body').innerHTML = `
-                <tr><td colspan="8" class="text-center py-8 text-gray-400">데이터가 없습니다.</td></tr>
+                <tr><td colspan="7" class="text-center py-8 text-gray-400">데이터가 없습니다.</td></tr>
             `;
             if (radarChartInstance) {
                 radarChartInstance.data.datasets[0].data = [0, 0, 0, 0, 0];
@@ -390,7 +366,6 @@
                 tr.className = "hover:bg-gray-50 transition-all border-b border-gray-100";
                 tr.innerHTML = `
                     <td class="p-3 font-bold text-gray-900">${d.name}</td>
-                    <td class="p-3 text-gray-500 text-xs">${d.dept}</td>
                     <td class="p-3 text-center">${d.scores['주도성']}</td>
                     <td class="p-3 text-center">${d.scores['유연성']}</td>
                     <td class="p-3 text-center">${d.scores['회복탄력']}</td>
