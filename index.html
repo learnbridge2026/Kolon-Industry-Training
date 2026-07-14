@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>코오롱인더스트리 인턴 조직적응 마음가짐 진단 (Onboarding Readiness)</title>
-    <!-- Tailwind CSS & Chart.js 라이브러리 로드 -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Tailwind CSS (버그 방지 안정화 CDN) & Chart.js -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Firebase Compat SDK (서버 연동용 핵심 라이브러리) -->
+    <!-- Firebase Compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
@@ -129,14 +129,14 @@
     </div>
 
     <script>
-        // --- [중요] 내 Firebase 데이터베이스 연동 설정 완료 ---
+        // --- Firebase 데이터베이스 연동 설정 ---
         const firebaseConfig = {
             databaseURL: "https://kolon-industries-training-default-rtdb.firebaseio.com/" 
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // --- 25문항 데이터 정의 (영역별 5문항씩 배치)
+        // --- 25문항 데이터 정의 ---
         const questions = [
             { id: 1, factor: "주도성", text: "나는 아직 부여받은 업무가 없더라도, 회사 시스템이나 매뉴얼을 스스로 찾아보며 파악하려 노력한다." },
             { id: 2, factor: "주도성", text: "선배 사원들이 바빠 보일 때, 내가 먼저 도와드릴 수 있는 일이 있는지 적극적으로 여쭤볼 용기가 있다." },
@@ -169,7 +169,6 @@
             { id: 25, factor: "조직일체", text: "인턴 기간 동안 단순 관찰자가 아니라, 이미 코오롱의 주역인 것처럼 책임감 있게 행동하고 싶다." }
         ];
 
-        // 전역 상태 변수
         let dbData = []; 
         let radarChartInstance = null;
 
@@ -202,10 +201,9 @@
                 form.appendChild(qBox);
             });
             initChart();
-            listenToRealtimeDatabase(); // 실시간 데이터 감지 시작
+            listenToRealtimeDatabase();
         };
 
-        // 탭 전환 기능
         function switchView(view) {
             const surveyView = document.getElementById('survey-view');
             const dashboardView = document.getElementById('dashboard-view');
@@ -226,7 +224,6 @@
             }
         }
 
-        // 진단 결과 제출 처리 (Firebase에 무기명으로 저장)
         function submitSurvey() {
             let factorScores = { "주도성": 0, "유연성": 0, "회복탄력": 0, "협업오픈": 0, "조직일체": 0 };
             let total = 0;
@@ -246,7 +243,6 @@
             Object.keys(factorScores).forEach(k => factorScores[k] = parseFloat((factorScores[k] / 5).toFixed(2)));
             let userAvg = parseFloat((total / 25).toFixed(2));
 
-            // 무기명 임시 번호 생성을 위해 기존 데이터 수 확인 후 데이터 푸시
             database.ref('results').once('value').then((snapshot) => {
                 const currentCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
                 const anonymousId = `참가자 ${currentCount + 1}`;
@@ -262,17 +258,15 @@
                     switchView('dashboard');
                 });
             }).catch(err => {
-                alert('DB 업로드 도중 에러가 발생했습니다: ' + err.message);
+                alert('DB 업로드 에러: ' + err.message);
             });
         }
 
-        // Firebase 실시간 변경 감지 리스너
         function listenToRealtimeDatabase() {
             database.ref('results').on('value', (snapshot) => {
                 const data = snapshot.val();
                 dbData = [];
                 if(data) {
-                    // 시간 순서 정렬을 보장하기 위해 배열에 푸시
                     Object.keys(data).forEach(key => {
                         dbData.push(data[key]);
                     });
@@ -281,9 +275,8 @@
             });
         }
 
-        // 전체 데이터 초기화 
         function clearData() {
-            if(confirm("정말로 모든 실시간 축적 데이터를 영구적으로 삭제하시겠습니까?")) {
+            if(confirm("정말로 모든 데이터를 영구적으로 삭제하시겠습니까?")) {
                 database.ref('results').remove().then(() => {
                     alert("모든 데이터베이스 정보가 초기화되었습니다.");
                     dbData = [];
@@ -292,7 +285,6 @@
             }
         }
 
-        // 가상 데이터 대량 생성 (익명 버전)
         function generateMockData() {
             const currentCount = dbData.length;
             for(let i=0; i<3; i++) {
@@ -315,7 +307,6 @@
             }
         }
 
-        // 대시보드 UI 초기화
         function resetDashboardUI() {
             document.getElementById('stat-total').innerText = `0명`;
             document.getElementById('stat-avg').innerText = `0.0 / 5.0`;
@@ -330,19 +321,16 @@
             }
         }
 
-        // 대시보드 UI 데이터 갱신
         function updateDashboard() {
             if(dbData.length === 0) {
                 resetDashboardUI();
                 return;
             }
 
-            // 1. 통계 상단 카드 업데이트
             document.getElementById('stat-total').innerText = `${dbData.length}명`;
             let overallAvg = parseFloat((dbData.reduce((acc, curr) => acc + curr.avg, 0) / dbData.length).toFixed(2));
             document.getElementById('stat-avg').innerText = `${overallAvg} / 5.0`;
 
-            // 영역별 전체 평균 구하기
             let totalFactors = { "주도성": 0, "유연성": 0, "회복탄력": 0, "협업오픈": 0, "조직일체": 0 };
             dbData.forEach(d => {
                 Object.keys(totalFactors).forEach(k => {
@@ -353,12 +341,10 @@
             });
             Object.keys(totalFactors).forEach(k => totalFactors[k] = parseFloat((totalFactors[k] / dbData.length).toFixed(2)));
 
-            // 최저/최고 영역 탐색
             let sortedFactors = Object.keys(totalFactors).sort((a,b) => totalFactors[a] - totalFactors[b]);
             document.getElementById('stat-low-factor').innerText = `${sortedFactors[0]} (${totalFactors[sortedFactors[0]]}점)`;
             document.getElementById('stat-high-factor').innerText = `${sortedFactors[sortedFactors.length-1]} (${totalFactors[sortedFactors[sortedFactors.length-1]]}점)`;
 
-            // 2. 테이블 갱신 (시간순 정렬)
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = "";
             dbData.forEach(d => {
@@ -376,7 +362,6 @@
                 tbody.appendChild(tr);
             });
 
-            // 3. 레이더 차트 업데이트
             const chartData = [
                 totalFactors["주도성"],
                 totalFactors["유연성"],
@@ -388,7 +373,6 @@
             radarChartInstance.update();
         }
 
-        // Chart.js 레이더 초기화
         function initChart() {
             const ctx = document.getElementById('radarChart').getContext('2d');
             radarChartInstance = new Chart(ctx, {
