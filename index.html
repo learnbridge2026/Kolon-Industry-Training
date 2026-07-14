@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>코오롱인더스트리 인턴 조직적응 마음가짐 진단 (Onboarding Readiness)</title>
-    <!-- Tailwind CSS (버그 방지 안정화 CDN) & Chart.js -->
+    <!-- Tailwind CSS (검증된 v3 안정형 CDN) & Chart.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Firebase Compat SDK -->
@@ -172,8 +172,16 @@
         let dbData = []; 
         let radarChartInstance = null;
 
+        // [중요 개선] 네트워크 상황에 관계없이 질문을 무조건 먼저 생성합니다.
         window.onload = function() {
+            createSurveyQuestions();
+            initChart();
+            listenToRealtimeDatabase();
+        };
+
+        function createSurveyQuestions() {
             const form = document.getElementById('survey-form');
+            form.innerHTML = ""; // 초기화
             questions.forEach((q, idx) => {
                 const qBox = document.createElement('div');
                 qBox.className = "bg-white rounded-2xl p-6 border border-gray-100 card-shadow transition-all hover:border-blue-200";
@@ -200,9 +208,7 @@
                 `;
                 form.appendChild(qBox);
             });
-            initChart();
-            listenToRealtimeDatabase();
-        };
+        }
 
         function switchView(view) {
             const surveyView = document.getElementById('survey-view');
@@ -243,6 +249,7 @@
             Object.keys(factorScores).forEach(k => factorScores[k] = parseFloat((factorScores[k] / 5).toFixed(2)));
             let userAvg = parseFloat((total / 25).toFixed(2));
 
+            // 무기명 임시 번호 생성을 위해 안전한 방식으로 순차적 번호 추출
             database.ref('results').once('value').then((snapshot) => {
                 const currentCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
                 const anonymousId = `참가자 ${currentCount + 1}`;
