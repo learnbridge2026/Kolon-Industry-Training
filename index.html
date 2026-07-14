@@ -7,6 +7,9 @@
     <!-- Tailwind CSS & Chart.js 라이브러리 로드 -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase Compat SDK (서버 연동용 핵심 라이브러리) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         .gradient-bg { background: linear-gradient(135deg, #0A2540 0%, #1A365D 100%); }
         .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
@@ -76,9 +79,14 @@
                 <h1 class="text-3xl font-bold text-gray-900 tracking-tight">강사 모니터링 대시보드</h1>
                 <p class="text-gray-500 text-sm mt-1">인턴들의 조직적응 readiness(준비도) 데이터를 실시간으로 분석합니다.</p>
             </div>
-            <button onclick="generateMockData()" class="bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-sm transition-all">
-                📊 가상 데이터 생성 (시뮬레이션용)
-            </button>
+            <div class="flex gap-2">
+                <button onclick="clearData()" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-sm transition-all">
+                    🧹 전체 DB 초기화
+                </button>
+                <button onclick="generateMockData()" class="bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-sm transition-all">
+                    📊 가상 데이터 생성 (테스트용)
+                </button>
+            </div>
         </div>
 
         <!-- 통계 요약 카드 -->
@@ -127,7 +135,7 @@
                         </thead>
                         <tbody id="data-table-body" class="divide-y divide-gray-100 text-gray-700">
                             <tr>
-                                <td colspan="8" class="text-center py-8 text-gray-400">제출된 진단 데이터가 없습니다.</td>
+                                <td colspan="8" class="text-center py-8 text-gray-400">실시간 데이터를 가져오는 중이거나 데이터가 없습니다.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -137,49 +145,50 @@
     </div>
 
     <script>
+        // --- [중요] 내 Firebase 데이터베이스 연동 설정 완료 ---
+        const firebaseConfig = {
+            databaseURL: "https://kolon-industries-training-default-rtdb.firebaseio.com/" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         // --- 25문항 데이터 정의 (영역별 5문항씩 배치)
         const questions = [
-            // 1. 주도적 학습 및 성장 (Proactivity)
             { id: 1, factor: "주도성", text: "나는 아직 부여받은 업무가 없더라도, 회사 시스템이나 매뉴얼을 스스로 찾아보며 파악하려 노력한다." },
             { id: 2, factor: "주도성", text: "선배 사원들이 바빠 보일 때, 내가 먼저 도와드릴 수 있는 일이 있는지 적극적으로 여쭤볼 용기가 있다." },
             { id: 3, factor: "주도성", text: "회사 생활 중 모르는 것이 생기면 가만히 있기보다 적절한 타이밍에 질문하여 해결하려 한다." },
-            { id: 4, factor: "주5성", text: "인턴 기간 동안 단순 보조에 그치지 않고 나만의 성장 목표를 구체적으로 세워두었다." },
+            { id: 4, factor: "주도성", text: "인턴 기간 동안 단순 보조에 그치지 않고 나만의 성장 목표를 구체적으로 세워두었다." },
             { id: 5, factor: "주도성", text: "처음 접하는 낯선 비즈니스 환경이나 용어를 마주해도 주눅 들지 않고 배워보려는 의지가 강하다." },
             
-            // 2. 환경 변화 유연성 (Openness & Agility)
             { id: 6, factor: "유연성", text: "학생 때의 익숙한 루틴이나 습관을 버리고, 직장인으로서의 새로운 생활 패턴에 유연하게 적응할 수 있다." },
             { id: 7, factor: "유연성", text: "팀의 규칙이나 소통 방식이 내 생각과 다르더라도, 우선 조직의 방식을 수용하고 이해해보려 한다." },
             { id: 8, factor: "유연성", text: "계획했던 일정이 회사의 갑작스러운 사정으로 변경되더라도 스트레스를 크게 받지 않고 받아들일 수 있다." },
             { id: 9, factor: "유연성", text: "내가 전혀 예상하지 못했던 부서나 업무에 배치되더라도 기꺼이 도전해 볼 생각이 있다." },
             { id: 10, factor: "유연성", text: "다양한 성향과 연령대의 선배들과 스스럼없이 섞이고 대화할 준비가 되어 있다." },
 
-            // 3. 회복탄력성 및 스트레스 관리 (Resilience)
             { id: 11, factor: "회복탄력", text: "과제를 수행하다가 선배나 멘토에게 아쉬운 피드백을 받더라도, 감정적으로 상하지 않고 성장의 기회로 여긴다." },
             { id: 12, factor: "회복탄력", text: "업무 실수를 하거나 난처한 상황에 처했을 때, 자책하기보다 빠르게 수습할 방법을 찾으려 한다." },
             { id: 13, factor: "회복탄력", text: "낯선 조직 환경에서 오는 긴장감과 스트레스를 나만의 방식으로 건강하게 해소할 수 있다." },
             { id: 14, factor: "회복탄력", text: "난이도가 높거나 복잡해 보이는 미션이 주어져도 '결국 해낼 수 있다'는 자신감이 있다." },
             { id: 15, factor: "회복탄력", text: "주변 환경이 어수선하거나 압박감이 느껴지는 상황에서도 내 페이스를 비교적 잘 유지하는 편이다." },
 
-            // 4. 협업 및 열린 소통 (Collaboration)
             { id: 16, factor: "협업오픈", text: "동기 인턴들과 경쟁하기보다는 서로 정보를 공유하고 돕는 것이 더 가치 있다고 믿는다." },
             { id: 17, factor: "협업오픈", text: "다른 사람의 의견이 내 의견과 상충될 때, 내 주장을 고집하기보다 상대방의 논리를 경청한다." },
             { id: 18, factor: "협업오픈", text: "팀 프로젝트나 공동 과제 수행 시, 내 몫 이상을 기꺼이 기여하고자 하는 마음이 있다." },
             { id: 19, factor: "협업오픈", text: "동료나 선배가 도움을 요청하면, 내 일이 아니더라도 긍정적으로 검토하고 협력할 것이다." },
             { id: 20, factor: "협업오픈", text: "회의나 토론 중 타인의 피드백을 수용하는 과정이 열려 있고 편안하다." },
 
-            // 5. 코오롱 일체감 및 조직 몰입 (Identity)
             { id: 21, factor: "조직일체", text: "코오롱인더스트리의 핵심 가치나 기업 문화(One&Only 등)에 대해 깊은 호기심과 관심을 갖고 있다." },
             { id: 22, factor: "조직일체", text: "나는 우리 회사가 사회에 기여하고 성장하는 모습에 자부심을 느낄 준비가 되어 있다." },
-            { id: 23, factor: "조직일체", text: "출근할 때 코오롱인더스트리의 배지나 사원증을 착용하는 것에 긍정적인 기대감이 든니다." },
+            { id: 23, factor: "조직일체", text: "출근할 때 코오롱인더스트리의 배지나 사원증을 착용하는 것에 긍정적인 기대감이 든다." },
             { id: 24, factor: "조직일체", text: "회사의 비전과 나의 개인적 성장 비전이 함께 맞물려 갈 수 있다고 생각한다." },
             { id: 25, factor: "조직일체", text: "인턴 기간 동안 단순 관찰자가 아니라, 이미 코오롱의 주역인 것처럼 책임감 있게 행동하고 싶다." }
         ];
 
-        // 상태 저장용 변수
+        // 전역 상태 변수
         let dbData = []; 
         let radarChartInstance = null;
 
-        // 화면 로드 시 질문 자동 생성
         window.onload = function() {
             const form = document.getElementById('survey-form');
             questions.forEach((q, idx) => {
@@ -209,6 +218,7 @@
                 form.appendChild(qBox);
             });
             initChart();
+            listenToRealtimeDatabase(); // 실시간 데이터 감지 시작
         };
 
         // 탭 전환 기능
@@ -232,7 +242,7 @@
             }
         }
 
-        // 진단 결과 제출 처리
+        // 진단 결과 제출 처리 (Firebase에 저장)
         function submitSurvey() {
             const name = document.getElementById('user-name').value.trim();
             const dept = document.getElementById('user-dept').value.trim();
@@ -242,10 +252,8 @@
                 return;
             }
 
-            // 모든 문항 응답 체크 및 점수 계산
             let factorScores = { "주도성": 0, "유연성": 0, "회복탄력": 0, "협업오픈": 0, "조직일체": 0 };
             let total = 0;
-            let answeredCount = 0;
 
             for(let i=1; i<=25; i++) {
                 const radio = document.querySelector(`input[name="q-${i}"]:checked`);
@@ -257,30 +265,60 @@
                 const factor = questions.find(q => q.id === i).factor;
                 factorScores[factor] += score;
                 total += score;
-                answeredCount++;
             }
 
-            // 영역별 평균 계산 (각 영역 5문항)
             Object.keys(factorScores).forEach(k => factorScores[k] = parseFloat((factorScores[k] / 5).toFixed(2)));
             let userAvg = parseFloat((total / 25).toFixed(2));
 
-            // 데이터 축적
-            dbData.push({ name, dept, scores: factorScores, avg: userAvg });
-
-            alert('진단이 성공적으로 제출되었습니다! 대시보드 탭에서 결과를 확인하세요.');
-            document.getElementById('survey-form').reset();
-            document.getElementById('user-name').value = '';
-            document.getElementById('user-dept').value = '';
-            
-            switchView('dashboard');
+            // Firebase 실시간 DB에 데이터 푸시
+            database.ref('results').push({
+                name: name,
+                dept: dept,
+                scores: factorScores,
+                avg: userAvg,
+                timestamp: Date.now()
+            }).then(() => {
+                alert('진단이 성공적으로 클라우드 DB에 제출되었습니다! 대시보드로 이동합니다.');
+                document.getElementById('survey-form').reset();
+                document.getElementById('user-name').value = '';
+                document.getElementById('user-dept').value = '';
+                switchView('dashboard');
+            }).catch(err => {
+                alert('DB 업로드 도중 에러가 발생했습니다: ' + err.message);
+            });
         }
 
-        // 가상 데이터 대량 생성 (강사 시뮬레이션용)
+        // Firebase 실시간 변경 감지 리스너
+        function listenToRealtimeDatabase() {
+            database.ref('results').on('value', (snapshot) => {
+                const data = snapshot.val();
+                dbData = [];
+                if(data) {
+                    Object.keys(data).forEach(key => {
+                        dbData.push(data[key]);
+                    });
+                }
+                updateDashboard();
+            });
+        }
+
+        // 전체 데이터 초기화 
+        function clearData() {
+            if(confirm("정말로 모든 실시간 축적 데이터를 영구적으로 삭제하시겠습니까?")) {
+                database.ref('results').remove().then(() => {
+                    alert("모든 데이터베이스 정보가 초기화되었습니다.");
+                    dbData = [];
+                    resetDashboardUI();
+                });
+            }
+        }
+
+        // 가상 데이터 대량 생성 (Firebase 전송 시뮬레이션)
         function generateMockData() {
             const names = ["김코롱", "이인턴", "박혁신", "최미래", "정성장", "윤협력", "한열정"];
             const depts = ["경영지원팀", "구미공장 생산기술", "울산공장 연구소", "아라미드 사업부", "필름마케팅팀"];
             
-            for(let i=0; i<5; i++) {
+            for(let i=0; i<3; i++) {
                 let factorScores = {
                     "주도성": parseFloat((Math.random() * 2 + 3).toFixed(2)),
                     "유연성": parseFloat((Math.random() * 2 + 3).toFixed(2)),
@@ -291,19 +329,37 @@
                 let sum = Object.values(factorScores).reduce((a,b)=>a+b, 0);
                 let avg = parseFloat((sum / 5).toFixed(2));
                 
-                dbData.push({
+                database.ref('results').push({
                     name: names[Math.floor(Math.random()*names.length)] + (dbData.length+1),
                     dept: depts[Math.floor(Math.random()*depts.length)],
                     scores: factorScores,
-                    avg: avg
+                    avg: avg,
+                    timestamp: Date.now()
                 });
             }
-            updateDashboard();
+        }
+
+        // 대시보드 UI 초기화
+        function resetDashboardUI() {
+            document.getElementById('stat-total').innerText = `0명`;
+            document.getElementById('stat-avg').innerText = `0.0 / 5.0`;
+            document.getElementById('stat-low-factor').innerText = `-`;
+            document.getElementById('stat-high-factor').innerText = `-`;
+            document.getElementById('data-table-body').innerHTML = `
+                <tr><td colspan="8" class="text-center py-8 text-gray-400">데이터가 없습니다.</td></tr>
+            `;
+            if (radarChartInstance) {
+                radarChartInstance.data.datasets[0].data = [0, 0, 0, 0, 0];
+                radarChartInstance.update();
+            }
         }
 
         // 대시보드 UI 데이터 갱신
         function updateDashboard() {
-            if(dbData.length === 0) return;
+            if(dbData.length === 0) {
+                resetDashboardUI();
+                return;
+            }
 
             // 1. 통계 상단 카드 업데이트
             document.getElementById('stat-total').innerText = `${dbData.length}명`;
@@ -313,7 +369,11 @@
             // 영역별 전체 평균 구하기
             let totalFactors = { "주도성": 0, "유연성": 0, "회복탄력": 0, "협업오픈": 0, "조직일체": 0 };
             dbData.forEach(d => {
-                Object.keys(totalFactors).forEach(k => totalFactors[k] += d.scores[k]);
+                Object.keys(totalFactors).forEach(k => {
+                    if (d.scores && d.scores[k] !== undefined) {
+                        totalFactors[k] += d.scores[k];
+                    }
+                });
             });
             Object.keys(totalFactors).forEach(k => totalFactors[k] = parseFloat((totalFactors[k] / dbData.length).toFixed(2)));
 
@@ -322,7 +382,7 @@
             document.getElementById('stat-low-factor').innerText = `${sortedFactors[0]} (${totalFactors[sortedFactors[0]]}점)`;
             document.getElementById('stat-high-factor').innerText = `${sortedFactors[sortedFactors.length-1]} (${totalFactors[sortedFactors[sortedFactors.length-1]]}점)`;
 
-            // 2. 테이블 갱신
+            // 2. 테이블 갱신 (시간순 정렬)
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = "";
             dbData.forEach(d => {
