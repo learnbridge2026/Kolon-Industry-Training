@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>코오롱인더스트리 인턴 조직적응 마음가짐 진단 (Onboarding Readiness)</title>
+    <!-- Tailwind CSS & Chart.js 라이브러리 로드 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #0A2540 0%, #1A365D 100%); }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <!-- 네비게이션 바 -->
+    <nav class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="text-xl font-extrabold text-blue-900 tracking-tight">KOLON <span class="text-emerald-600">INDUSTRIES</span></span>
+                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">인턴십 On-boarding</span>
+            </div>
+            <div class="space-x-2">
+                <button onclick="switchView('survey')" id="btn-survey" class="px-4 py-2 rounded-lg text-sm font-bold bg-blue-950 text-white transition-all">진단 참여</button>
+                <button onclick="switchView('dashboard')" id="btn-dashboard" class="px-4 py-2 rounded-lg text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">강사 대시보드</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- [1] 진단 참여 화면 -->
+    <div id="survey-view" class="max-w-3xl mx-auto px-4 py-8">
+        <div class="gradient-bg text-white rounded-2xl p-8 mb-8 card-shadow">
+            <h1 class="text-2xl md:text-3xl font-bold mb-3">인턴십 조직적응 마음가짐 진단</h1>
+            <p class="text-blue-200 text-sm md:text-base leading-relaxed">
+                본 진단은 현업 배치 전, 여러분이 코오롱인더스트리의 일원으로서 건강하게 몰입하고 적응할 수 있는 '마음가짐 상태'를 점검하기 위한 도구입니다. 정답이 없으므로 솔직하게 응답해 주세요.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-4 text-xs text-blue-100 bg-white/10 p-4 rounded-xl">
+                <div>• 총 문항: 25문항</div>
+                <div>• 하위 영역: 주도성, 유연성, 회복탄력성, 협업 열린마음, 조직 일체감</div>
+            </div>
+        </div>
+
+        <!-- 사용자 정보 입력 -->
+        <div class="bg-white rounded-2xl p-6 mb-6 card-shadow border border-gray-100">
+            <h3 class="font-bold text-gray-900 mb-4 flex items-center"><span class="w-1.5 h-5 bg-emerald-500 rounded-full mr-2"></span>응답자 정보 입력</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">성명</label>
+                    <input type="text" id="user-name" placeholder="이름을 입력하세요" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">소속 부서 / 군</label>
+                    <input type="text" id="user-dept" placeholder="예: HR디자인팀 / 화학소재" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
+                </div>
+            </div>
+        </div>
+
+        <!-- 질문 리스트 -->
+        <form id="survey-form" class="space-y-4">
+            <!-- 질문들이 자바스크립트로 동적 생성됩니다 -->
+        </form>
+
+        <div class="mt-8 text-center">
+            <button type="button" onclick="submitSurvey()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl text-lg card-shadow transition-all w-full md:w-auto">
+                진단 결과 제출하기
+            </button>
+        </div>
+    </div>
+
+
+    <!-- [2] 강사용 대시보드 화면 -->
+    <div id="dashboard-view" class="max-w-7xl mx-auto px-4 py-8 hidden">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">강사 모니터링 대시보드</h1>
+                <p class="text-gray-500 text-sm mt-1">인턴들의 조직적응 readiness(준비도) 데이터를 실시간으로 분석합니다.</p>
+            </div>
+            <button onclick="generateMockData()" class="bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-sm transition-all">
+                📊 가상 데이터 생성 (시뮬레이션용)
+            </button>
+        </div>
+
+        <!-- 통계 요약 카드 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
+                <p class="text-sm font-medium text-gray-400">총 진단 완료 인원</p>
+                <p class="text-3xl font-extrabold text-blue-950 mt-2" id="stat-total">0명</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
+                <p class="text-sm font-medium text-gray-400">전체 종합 평균 점수</p>
+                <p class="text-3xl font-extrabold text-emerald-600 mt-2" id="stat-avg">0.0 / 5.0</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
+                <p class="text-sm font-medium text-gray-400">최고 위험 영역 (최저점)</p>
+                <p class="text-xl font-bold text-red-500 mt-3" id="stat-low-factor">-</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100">
+                <p class="text-sm font-medium text-gray-400">가장 강한 영역 (최고점)</p>
+                <p class="text-xl font-bold text-blue-600 mt-3" id="stat-high-factor">-</p>
+            </div>
+        </div>
+
+        <!-- 차트 영역 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100 lg:col-span-1 flex flex-col items-center justify-center">
+                <h3 class="font-bold text-gray-800 mb-4 self-start">5대 핵심 마음가짐 역량 평균</h3>
+                <div class="w-full h-64 flex items-center justify-center">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl card-shadow border border-gray-100 lg:col-span-2">
+                <h3 class="font-bold text-gray-800 mb-4">개인별 진단 결과 현황 테이블</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200 text-gray-400 bg-gray-50">
+                                <th class="p-3 font-semibold">성명</th>
+                                <th class="p-3 font-semibold">소속</th>
+                                <th class="p-3 font-semibold text-center">주도성</th>
+                                <th class="p-3 font-semibold text-center">유연성</th>
+                                <th class="p-3 font-semibold text-center">회복탄력</th>
+                                <th class="p-3 font-semibold text-center">협업오픈</th>
+                                <th class="p-3 font-semibold text-center">조직일체</th>
+                                <th class="p-3 font-semibold text-center font-bold text-blue-900">평균</th>
+                            </tr>
+                        </thead>
+                        <tbody id="data-table-body" class="divide-y divide-gray-100 text-gray-700">
+                            <tr>
+                                <td colspan="8" class="text-center py-8 text-gray-400">제출된 진단 데이터가 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 25문항 데이터 정의 (영역별 5문항씩 배치)
+        const questions = [
+            // 1. 주도적 학습 및 성장 (Proactivity)
+            { id: 1, factor: "주도성", text: "나는 아직 부여받은 업무가 없더라도, 회사 시스템이나 매뉴얼을 스스로 찾아보며 파악하려 노력한다." },
+            { id: 2, factor: "주도성", text: "선배 사원들이 바빠 보일 때, 내가 먼저 도와드릴 수 있는 일이 있는지 적극적으로 여쭤볼 용기가 있다." },
+            { id: 3, factor: "주도성", text: "회사 생활 중 모르는 것이 생기면 가만히 있기보다 적절한 타이밍에 질문하여 해결하려 한다." },
+            { id: 4, factor: "주5성", text: "인턴 기간 동안 단순 보조에 그치지 않고 나만의 성장 목표를 구체적으로 세워두었다." },
+            { id: 5, factor: "주도성", text: "처음 접하는 낯선 비즈니스 환경이나 용어를 마주해도 주눅 들지 않고 배워보려는 의지가 강하다." },
+            
+            // 2. 환경 변화 유연성 (Openness & Agility)
+            { id: 6, factor: "유연성", text: "학생 때의 익숙한 루틴이나 습관을 버리고, 직장인으로서의 새로운 생활 패턴에 유연하게 적응할 수 있다." },
+            { id: 7, factor: "유연성", text: "팀의 규칙이나 소통 방식이 내 생각과 다르더라도, 우선 조직의 방식을 수용하고 이해해보려 한다." },
+            { id: 8, factor: "유연성", text: "계획했던 일정이 회사의 갑작스러운 사정으로 변경되더라도 스트레스를 크게 받지 않고 받아들일 수 있다." },
+            { id: 9, factor: "유연성", text: "내가 전혀 예상하지 못했던 부서나 업무에 배치되더라도 기꺼이 도전해 볼 생각이 있다." },
+            { id: 10, factor: "유연성", text: "다양한 성향과 연령대의 선배들과 스스럼없이 섞이고 대화할 준비가 되어 있다." },
+
+            // 3. 회복탄력성 및 스트레스 관리 (Resilience)
+            { id: 11, factor: "회복탄력", text: "과제를 수행하다가 선배나 멘토에게 아쉬운 피드백을 받더라도, 감정적으로 상하지 않고 성장의 기회로 여긴다." },
+            { id: 12, factor: "회복탄력", text: "업무 실수를 하거나 난처한 상황에 처했을 때, 자책하기보다 빠르게 수습할 방법을 찾으려 한다." },
+            { id: 13, factor: "회복탄력", text: "낯선 조직 환경에서 오는 긴장감과 스트레스를 나만의 방식으로 건강하게 해소할 수 있다." },
+            { id: 14, factor: "회복탄력", text: "난이도가 높거나 복잡해 보이는 미션이 주어져도 '결국 해낼 수 있다'는 자신감이 있다." },
+            { id: 15, factor: "회복탄력", text: "주변 환경이 어수선하거나 압박감이 느껴지는 상황에서도 내 페이스를 비교적 잘 유지하는 편이다." },
+
+            // 4. 협업 및 열린 소통 (Collaboration)
+            { id: 16, factor: "협업오픈", text: "동기 인턴들과 경쟁하기보다는 서로 정보를 공유하고 돕는 것이 더 가치 있다고 믿는다." },
+            { id: 17, factor: "협업오픈", text: "다른 사람의 의견이 내 의견과 상충될 때, 내 주장을 고집하기보다 상대방의 논리를 경청한다." },
+            { id: 18, factor: "협업오픈", text: "팀 프로젝트나 공동 과제 수행 시, 내 몫 이상을 기꺼이 기여하고자 하는 마음이 있다." },
+            { id: 19, factor: "협업오픈", text: "동료나 선배가 도움을 요청하면, 내 일이 아니더라도 긍정적으로 검토하고 협력할 것이다." },
+            { id: 20, factor: "협업오픈", text: "회의나 토론 중 타인의 피드백을 수용하는 과정이 열려 있고 편안하다." },
+
+            // 5. 코오롱 일체감 및 조직 몰입 (Identity)
+            { id: 21, factor: "조직일체", text: "코오롱인더스트리의 핵심 가치나 기업 문화(One&Only 등)에 대해 깊은 호기심과 관심을 갖고 있다." },
+            { id: 22, factor: "조직일체", text: "나는 우리 회사가 사회에 기여하고 성장하는 모습에 자부심을 느낄 준비가 되어 있다." },
+            { id: 23, factor: "조직일체", text: "출근할 때 코오롱인더스트리의 배지나 사원증을 착용하는 것에 긍정적인 기대감이 든니다." },
+            { id: 24, factor: "조직일체", text: "회사의 비전과 나의 개인적 성장 비전이 함께 맞물려 갈 수 있다고 생각한다." },
+            { id: 25, factor: "조직일체", text: "인턴 기간 동안 단순 관찰자가 아니라, 이미 코오롱의 주역인 것처럼 책임감 있게 행동하고 싶다." }
+        ];
+
+        // 상태 저장용 변수
+        let dbData = []; 
+        let radarChartInstance = null;
+
+        // 화면 로드 시 질문 자동 생성
+        window.onload = function() {
+            const form = document.getElementById('survey-form');
+            questions.forEach((q, idx) => {
+                const qBox = document.createElement('div');
+                qBox.className = "bg-white rounded-2xl p-6 border border-gray-100 card-shadow transition-all hover:border-blue-200";
+                qBox.innerHTML = `
+                    <div class="flex items-start gap-3 mb-4">
+                        <span class="bg-blue-50 text-blue-900 font-bold px-2.5 py-1 text-xs rounded-lg mt-0.5">${idx + 1}</span>
+                        <div>
+                            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded mb-1 inline-block">[${q.factor}]</span>
+                            <p class="text-base font-medium text-gray-800 leading-snug">${q.text}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-5 gap-2 pt-2 border-t border-gray-50 text-center">
+                        ${[1,2,3,4,5].map(score => `
+                            <label class="cursor-pointer p-2.5 rounded-xl border border-gray-200 hover:bg-blue-50 block transition-all group">
+                                <input type="radio" name="q-${q.id}" value="${score}" required class="mb-1 block mx-auto accent-blue-900">
+                                <span class="text-xs text-gray-400 group-hover:text-blue-900 font-medium">${score}점</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                    <div class="flex justify-between px-2 mt-2 text-[10px] text-gray-400">
+                        <span>전혀 아니다</span>
+                        <span>매우 그렇다</span>
+                    </div>
+                `;
+                form.appendChild(qBox);
+            });
+            initChart();
+        };
+
+        // 탭 전환 기능
+        function switchView(view) {
+            const surveyView = document.getElementById('survey-view');
+            const dashboardView = document.getElementById('dashboard-view');
+            const btnSurvey = document.getElementById('btn-survey');
+            const btnDashboard = document.getElementById('btn-dashboard');
+
+            if(view === 'survey') {
+                surveyView.classList.remove('hidden');
+                dashboardView.classList.add('hidden');
+                btnSurvey.className = "px-4 py-2 rounded-lg text-sm font-bold bg-blue-950 text-white transition-all";
+                btnDashboard.className = "px-4 py-2 rounded-lg text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all";
+            } else {
+                surveyView.classList.add('hidden');
+                dashboardView.classList.remove('hidden');
+                btnSurvey.className = "px-4 py-2 rounded-lg text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all";
+                btnDashboard.className = "px-4 py-2 rounded-lg text-sm font-bold bg-blue-950 text-white transition-all";
+                updateDashboard();
+            }
+        }
+
+        // 진단 결과 제출 처리
+        function submitSurvey() {
+            const name = document.getElementById('user-name').value.trim();
+            const dept = document.getElementById('user-dept').value.trim();
+
+            if(!name || !dept) {
+                alert('응답자 이름과 소속을 적어주세요.');
+                return;
+            }
+
+            // 모든 문항 응답 체크 및 점수 계산
+            let factorScores = { "주도성": 0, "유연성": 0, "회복탄력": 0, "협업오픈": 0, "조직일체": 0 };
+            let total = 0;
+            let answeredCount = 0;
+
+            for(let i=1; i<=25; i++) {
+                const radio = document.querySelector(`input[name="q-${i}"]:checked`);
+                if(!radio) {
+                    alert(`${i}번 문항에 응답하지 않았습니다.`);
+                    return;
+                }
+                const score = parseInt(radio.value);
+                const factor = questions.find(q => q.id === i).factor;
+                factorScores[factor] += score;
+                total += score;
+                answeredCount++;
+            }
+
+            // 영역별 평균 계산 (각 영역 5문항)
+            Object.keys(factorScores).forEach(k => factorScores[k] = parseFloat((factorScores[k] / 5).toFixed(2)));
+            let userAvg = parseFloat((total / 25).toFixed(2));
+
+            // 데이터 축적
+            dbData.push({ name, dept, scores: factorScores, avg: userAvg });
+
+            alert('진단이 성공적으로 제출되었습니다! 대시보드 탭에서 결과를 확인하세요.');
+            document.getElementById('survey-form').reset();
+            document.getElementById('user-name').value = '';
+            document.getElementById('user-dept').value = '';
+            
+            switchView('dashboard');
+        }
+
+        // 가상 데이터 대량 생성 (강사 시뮬레이션용)
+        function generateMockData() {
+            const names = ["김코롱", "이인턴", "박혁신", "최미래", "정성장", "윤협력", "한열정"];
+            const depts = ["경영지원팀", "구미공장 생산기술", "울산공장 연구소", "아라미드 사업부", "필름마케팅팀"];
+            
+            for(let i=0; i<5; i++) {
+                let factorScores = {
+                    "주도성": parseFloat((Math.random() * 2 + 3).toFixed(2)),
+                    "유연성": parseFloat((Math.random() * 2 + 3).toFixed(2)),
+                    "회복탄력": parseFloat((Math.random() * 2 + 3).toFixed(2)),
+                    "협업오픈": parseFloat((Math.random() * 2 + 3).toFixed(2)),
+                    "조직일체": parseFloat((Math.random() * 2 + 3).toFixed(2))
+                };
+                let sum = Object.values(factorScores).reduce((a,b)=>a+b, 0);
+                let avg = parseFloat((sum / 5).toFixed(2));
+                
+                dbData.push({
+                    name: names[Math.floor(Math.random()*names.length)] + (dbData.length+1),
+                    dept: depts[Math.floor(Math.random()*depts.length)],
+                    scores: factorScores,
+                    avg: avg
+                });
+            }
+            updateDashboard();
+        }
+
+        // 대시보드 UI 데이터 갱신
+        function updateDashboard() {
+            if(dbData.length === 0) return;
+
+            // 1. 통계 상단 카드 업데이트
+            document.getElementById('stat-total').innerText = `${dbData.length}명`;
+            let overallAvg = parseFloat((dbData.reduce((acc, curr) => acc + curr.avg, 0) / dbData.length).toFixed(2));
+            document.getElementById('stat-avg').innerText = `${overallAvg} / 5.0`;
+
+            // 영역별 전체 평균 구하기
+            let totalFactors = { "주도성": 0, "유연성": 0, "회복탄력": 0, "협업오픈": 0, "조직일체": 0 };
+            dbData.forEach(d => {
+                Object.keys(totalFactors).forEach(k => totalFactors[k] += d.scores[k]);
+            });
+            Object.keys(totalFactors).forEach(k => totalFactors[k] = parseFloat((totalFactors[k] / dbData.length).toFixed(2)));
+
+            // 최저/최고 영역 탐색
+            let sortedFactors = Object.keys(totalFactors).sort((a,b) => totalFactors[a] - totalFactors[b]);
+            document.getElementById('stat-low-factor').innerText = `${sortedFactors[0]} (${totalFactors[sortedFactors[0]]}점)`;
+            document.getElementById('stat-high-factor').innerText = `${sortedFactors[sortedFactors.length-1]} (${totalFactors[sortedFactors[sortedFactors.length-1]]}점)`;
+
+            // 2. 테이블 갱신
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = "";
+            dbData.forEach(d => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-all border-b border-gray-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-gray-900">${d.name}</td>
+                    <td class="p-3 text-gray-500 text-xs">${d.dept}</td>
+                    <td class="p-3 text-center">${d.scores['주도성']}</td>
+                    <td class="p-3 text-center">${d.scores['유연성']}</td>
+                    <td class="p-3 text-center">${d.scores['회복탄력']}</td>
+                    <td class="p-3 text-center">${d.scores['협업오픈']}</td>
+                    <td class="p-3 text-center">${d.scores['조직일체']}</td>
+                    <td class="p-3 text-center font-bold text-blue-900 bg-blue-50/50">${d.avg}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 3. 레이더 차트 업데이트
+            const chartData = [
+                totalFactors["주도성"],
+                totalFactors["유연성"],
+                totalFactors["회복탄력"],
+                totalFactors["협업오픈"],
+                totalFactors["조직일체"]
+            ];
+            radarChartInstance.data.datasets[0].data = chartData;
+            radarChartInstance.update();
+        }
+
+        // Chart.js 레이더 초기화
+        function initChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['주도성', '유연성', '회복탄력', '협업오픈', '조직일체'],
+                    datasets: [{
+                        label: '그룹 평균 Readiness 점수',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(10, 37, 64, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 1,
+                            suggestedMax: 5,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
